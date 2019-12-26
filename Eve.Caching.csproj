@@ -2,6 +2,18 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <PackageId>Eve.Caching</PackageId>
+    <Version>0.1.0</Version>
+    <Authors>hoseinyeganloo@gmail.com</Authors>
+    <Company>Eve</Company>
+    <PackageDescription>Simple caching module.</PackageDescription>
+    <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+    <Copyright>Hosein Yeganloo - 2019</Copyright>
+    <PackageTags>Caching;Simple Cache</PackageTags>
+    <RepositoryURL>https://github.com/Yeganloo/Eve.Caching</RepositoryURL>
   </PropertyGroup>
+  <ItemGroup>
+    <None Include="LICENSE.txt" Pack="true" PackagePath="$(PackageLicenseFile)"/>
+  </ItemGroup>
 
 </Project>
