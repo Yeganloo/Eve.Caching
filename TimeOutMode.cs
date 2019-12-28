@@ -2,9 +2,9 @@
 {
     public enum TimeOutMode : byte
     {
-        LastUse = 0,
-        FromCreate = 1,
-        AccessCount = 2,
-        Never = 3
+        LastUse = 1,
+        FromCreate = 2,
+        AccessCount = 4,
+        Never = 8
     }
 }

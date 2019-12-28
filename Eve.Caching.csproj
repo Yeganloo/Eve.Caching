@@ -9,7 +9,7 @@
     <PackageDescription>Simple caching module.</PackageDescription>
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
     <Copyright>Hosein Yeganloo - 2019</Copyright>
-    <PackageTags>Caching;Simple Cache</PackageTags>
+    <PackageTags>Caching;Simple Cache;In Memory;Thread Safe</PackageTags>
     <RepositoryURL>https://github.com/Yeganloo/Eve.Caching</RepositoryURL>
   </PropertyGroup>
   <ItemGroup>
