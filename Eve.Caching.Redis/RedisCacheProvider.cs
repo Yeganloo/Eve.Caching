@@ -66,7 +66,7 @@ namespace Eve.Caching.Redis
                 throw new ArgumentException($"TimeOut Mode is not supported!\r\nMode is {mode.ToString()}");
             this[name] = obj;
             if (mode == TimeOutMode.FromCreate)
-                _Cache.KeyExpireAsync(name, DateTime.Now.AddMilliseconds(timeOut));
+                _Cache.KeyExpireAsync(name, DateTime.Now.AddSeconds(timeOut));
         }
 
         public void Cache(string key, TVal obj)
@@ -87,7 +87,7 @@ namespace Eve.Caching.Redis
                 throw new ArgumentException($"TimeOut Mode is not supported!\r\nMode is {mode.ToString()}");
             this[key, subkey] = obj;
             if (mode == TimeOutMode.FromCreate)
-                _Cache.KeyExpireAsync(key, DateTime.Now.AddMilliseconds(timeOut));
+                _Cache.KeyExpireAsync(key, DateTime.Now.AddSeconds(timeOut));
         }
 
         /// <summary>
