@@ -22,7 +22,7 @@ namespace Eve.Caching.Redis
 
         private object Deserialize(byte[] val, Type type)
         {
-            return typeof(MessagePack.MessagePackSerializer).GetMethod("Deserialize", new Type[] { typeof(byte[]), typeof(MessagePack.MessagePackSerializerOptions) }).MakeGenericMethod(type).Invoke(null, new object[] { val, Option });
+            return MessagePack.MessagePackSerializer.Deserialize(type, val, Option);
         }
 
         public IDatabase _Cache
@@ -121,22 +121,26 @@ namespace Eve.Caching.Redis
 
         public T Get<T>(string key) where T : TVal
         {
-            return Deserialize<T>((byte[])_Cache.StringGet(key));
+            var tmp = (byte[])_Cache.StringGet(key);
+            return tmp != null ? Deserialize<T>(tmp) : default(T);
         }
 
         public T Get<T>(string key, string SubKey) where T : TVal
         {
-            return Deserialize<T>((byte[])_Cache.HashGet(key, SubKey));
+            var tmp = (byte[])_Cache.HashGet(key, SubKey);
+            return tmp != null ? Deserialize<T>(tmp) : default(T);
         }
 
         public object Get(string key, Type type)
         {
-            return Deserialize((byte[])_Cache.StringGet(key), type);
+            var tmp = (byte[])_Cache.StringGet(key);
+            return tmp != null ? Deserialize(tmp, type) : type.IsValueType ? Activator.CreateInstance(type) : null;
         }
 
         public object Get(string key, string SubKey, Type type)
         {
-            return Deserialize((byte[])_Cache.HashGet(key, SubKey), type);
+            var tmp = (byte[])_Cache.HashGet(key, SubKey);
+            return tmp != null ? Deserialize(tmp, type) : type.IsValueType ? Activator.CreateInstance(type) : null;
         }
     }
 }

@@ -7,7 +7,7 @@ namespace Eve.Caching.RedisTest
 {
     public class RedisCacheTest
     {
-        private const int _Rounds = 1000;
+        private const int _Rounds = 10;
         public class testObj
         {
             public int I;
@@ -15,7 +15,7 @@ namespace Eve.Caching.RedisTest
 
         public ICacheProvider<string, testObj> GetProvider()
         {
-            string cnn = "127.0.0.1:6379";
+            string cnn = "127.0.0.1:6379,defaultDatabase=3";
             return new RedisCacheProvider<testObj>(StackExchange.Redis.ConfigurationOptions.Parse(cnn));
         }
 
