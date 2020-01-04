@@ -67,6 +67,28 @@ namespace Eve.Caching.RedisTest
             Assert.Null(cache.Get<testObj>("tst"));
         }
 
+        [Fact]
+        public void ExpierAccess()
+        {
+            var cache = GetProvider();
+            cache.Cache("tst", new testObj(), TimeOutMode.LastUse, 1);
+            Thread.Sleep(900);
+            Assert.NotNull(cache.Get<testObj>("tst"));
+            Thread.Sleep(900);
+            Assert.NotNull(cache.Get<testObj>("tst"));
+            Thread.Sleep(1001);
+            Assert.Null(cache.Get<testObj>("tst"));
+        }
+
+        [Fact]
+        public void ExpierCnt()
+        {
+            var cache = GetProvider();
+            cache.Cache("tst", new testObj(), TimeOutMode.AccessCount, 2);
+            Assert.NotNull(cache.Get<testObj>("tst"));
+            Assert.NotNull(cache.Get<testObj>("tst"));
+            Assert.Null(cache.Get<testObj>("tst"));
+        }
 
         [Fact]
         public void ReadWrite_Subkey()

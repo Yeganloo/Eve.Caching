@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <PackageId>Eve.Caching.Redis</PackageId>
-    <Version>0.1.1-rc1</Version>
+    <Version>0.1.1-rc2</Version>
     <Authors>hoseinyeganloo@gmail.com</Authors>
     <Company>Eve</Company>
     <RepositoryType>github</RepositoryType>
