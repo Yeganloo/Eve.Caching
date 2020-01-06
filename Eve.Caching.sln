@@ -11,6 +11,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Eve.CachingTest", "Eve.Cach
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Eve.Caching.RedisTest", "Eve.Caching.RedisTest\Eve.Caching.RedisTest.csproj", "{7017BF08-27D9-4008-88B8-A5754C9DFFA8}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Eve.Caching.Memcached", "Eve.Caching.Memcached\Eve.Caching.Memcached.csproj", "{034C51CA-7590-4EE0-88C0-77CE7B2AA968}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Eve.Caching.MemcachedTest", "Eve.Caching.MemcachedTest\Eve.Caching.MemcachedTest.csproj", "{86B5F81D-1096-4B7C-8E63-E817EDA4BD3B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +37,14 @@ Global
 		{7017BF08-27D9-4008-88B8-A5754C9DFFA8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7017BF08-27D9-4008-88B8-A5754C9DFFA8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7017BF08-27D9-4008-88B8-A5754C9DFFA8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{034C51CA-7590-4EE0-88C0-77CE7B2AA968}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{034C51CA-7590-4EE0-88C0-77CE7B2AA968}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{034C51CA-7590-4EE0-88C0-77CE7B2AA968}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{034C51CA-7590-4EE0-88C0-77CE7B2AA968}.Release|Any CPU.Build.0 = Release|Any CPU
+		{86B5F81D-1096-4B7C-8E63-E817EDA4BD3B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{86B5F81D-1096-4B7C-8E63-E817EDA4BD3B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{86B5F81D-1096-4B7C-8E63-E817EDA4BD3B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{86B5F81D-1096-4B7C-8E63-E817EDA4BD3B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

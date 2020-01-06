@@ -31,15 +31,6 @@ namespace Eve.Caching.Redis
             _Cache.ScriptEvaluate(_LuaCacheSub, new { key = (RedisKey)key, subkey = (RedisKey)subkey, value = Serialize(obj), mode = (int)mode, timer = timeOut, timerkey = GetTimerKey(key, subkey), creation = DateTime.UtcNow.Subtract(_BaseDate).TotalSeconds });
         }
 
-        private void Del(string key)
-        {
-            _Cache.ScriptEvaluate(_LuaDel, new { key = key, timerkey = GetTimerKey(key) });
-        }
-        private void Del(string key, string subkey)
-        {
-            _Cache.ScriptEvaluate(_LuaDelSub, new { key = key, subkey = subkey, timerkey = GetTimerKey(key, subkey) });
-        }
-
         private byte[] Restore(string key)
         {
             return (byte[])_Cache.ScriptEvaluate(_LuaGet, new { key = key, timerkey = GetTimerKey(key), now = DateTime.UtcNow.Subtract(_BaseDate).TotalSeconds });
@@ -222,6 +213,7 @@ end
             _Cache.Execute("FLUSHDB");
         }
 
+        //BUG Check expiertion on exists.
         public bool HasKey(string key)
         {
             return _Cache.KeyExists(key);
@@ -229,14 +221,15 @@ end
 
         public void Remove(string key)
         {
-            Del(key);
+            _Cache.ScriptEvaluate(_LuaDel, new { key = key, timerkey = GetTimerKey(key) });
         }
 
         public void Remove(string key, string subKey)
         {
-            Del(key, subKey);
+            _Cache.ScriptEvaluate(_LuaDelSub, new { key = key, subkey = subKey, timerkey = GetTimerKey(key, subKey) });
         }
 
+        //BUG Check expiertion on exists.
         public bool HasKey(string key, string subKey)
         {
             return _Cache.HashExists(key, subKey);
