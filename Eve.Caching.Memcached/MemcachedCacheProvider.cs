@@ -128,5 +128,15 @@ namespace Eve.Caching.Memcached
         {
             return Get(joinKeis(key,subkey),type);
         }
+
+        public void Cache(string key, TValue obj, DateTime expiry)
+        {
+            Cache(key, obj, TimeOutMode.FromCreate, (int)expiry.Subtract(DateTime.UtcNow).TotalSeconds);
+        }
+
+        public void Cache(string key, string subkey, TValue obj, DateTime expiry)
+        {
+            Cache(key, subkey, obj, TimeOutMode.FromCreate, (int)expiry.Subtract(DateTime.UtcNow).TotalSeconds);
+        }
     }
 }

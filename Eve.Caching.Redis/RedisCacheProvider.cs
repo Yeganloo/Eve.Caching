@@ -12,20 +12,23 @@ namespace Eve.Caching.Redis
         private readonly LuaScript _LuaGet;
         private readonly LuaScript _LuaCache;
         private readonly LuaScript _LuaDel;
+        private readonly LuaScript _LuaExists;
 
         private readonly LuaScript _LuaGetSub;
         private readonly LuaScript _LuaCacheSub;
         private readonly LuaScript _LuaDelSub;
+        private readonly LuaScript _LuaExistsSub;
 
         private readonly DateTime _BaseDate;
 
         protected string GetTimerKey(string key) => $"{TimerPrifix}{key}";
         protected string GetTimerKey(string key, string subKey) => $"{TimerPrifix}{key}{TimerPrifix}{subKey}";
-
+        //TODO Set redis builting expier
         private void Store(string key, TVal obj, TimeOutMode mode = TimeOutMode.Never, int timeOut = 0)
         {
             _Cache.ScriptEvaluate(_LuaCache, new { key = (RedisKey)key, value = Serialize(obj), mode = (int)mode, timer = timeOut, timerkey = GetTimerKey(key), creation = DateTime.UtcNow.Subtract(_BaseDate).TotalSeconds });
         }
+        //TODO Set redis builting expier
         private void Store(string key, string subkey, TVal obj, TimeOutMode mode = TimeOutMode.Never, int timeOut = 0)
         {
             _Cache.ScriptEvaluate(_LuaCacheSub, new { key = (RedisKey)key, subkey = (RedisKey)subkey, value = Serialize(obj), mode = (int)mode, timer = timeOut, timerkey = GetTimerKey(key, subkey), creation = DateTime.UtcNow.Subtract(_BaseDate).TotalSeconds });
@@ -66,6 +69,12 @@ namespace Eve.Caching.Redis
         public RedisCacheProvider()
         {
             _BaseDate = new DateTime(1970, 01, 01, 00, 00, 00);
+        }
+
+        public RedisCacheProvider(ConfigurationOptions options, MessagePack.MessagePackSerializerOptions mspOptions = null) : this()
+        {
+            Option = mspOptions ?? MessagePack.Resolvers.ContractlessStandardResolver.Options;
+            Connection = ConnectionMultiplexer.Connect(options);
 
             _LuaCache = LuaScript.Prepare(@"redis.call('hset',@timerkey,'mode',@mode);
 redis.call('hset',@timerkey,'counter',@timer);
@@ -82,8 +91,13 @@ if mode == {(byte)TimeOutMode.Never} then
     return redis.call('get',@key);
 elseif mode == {(byte)TimeOutMode.AccessCount} then
     local cnt = tonumber(redis.call('hincrby',@timerkey,'counter',-1));
-    if cnt >= 0 then
+    if cnt > 0 then
         return redis.call('get',@key);
+    elseif cnt == 0 then
+        local tmp = redis.call('get',@key);
+        redis.call('del',@timerkey);
+        redis.call('del',@key);
+        return tmp;
     else
         redis.call('del',@timerkey);
         redis.call('del',@key);
@@ -110,6 +124,34 @@ else
     end
 end
 ");
+            _LuaExists = LuaScript.Prepare($@"local mode = tonumber(redis.call('hget',@timerkey,'mode'));
+if mode == nil then
+    return 0;
+end
+if mode == {(byte)TimeOutMode.Never} then
+    return 1
+elseif mode == {(byte)TimeOutMode.AccessCount} then
+    return 1
+elseif mode == {(byte)TimeOutMode.FromCreate} then
+    local crt = tonumber(redis.call('hget',@timerkey,'creation'));
+    if @now - crt < tonumber(redis.call('hget',@timerkey,'counter')) then
+        return 1
+    else
+        redis.call('del',@timerkey);
+        redis.call('del',@key);
+        return 0;
+    end
+else
+    local crt = tonumber(redis.call('hget',@timerkey,'creation'));
+    if @now - crt < tonumber(redis.call('hget',@timerkey,'counter')) then
+        return 1
+    else
+        redis.call('del',@timerkey);
+        redis.call('del',@key);
+        return 0;
+    end
+end");
+
 
             _LuaCacheSub = LuaScript.Prepare(@"redis.call('hset',@timerkey,'mode',@mode);
 redis.call('hset',@timerkey,'counter',@timer);
@@ -128,14 +170,19 @@ elseif mode == {(byte)TimeOutMode.AccessCount} then
     local cnt = tonumber(redis.call('hincrby',@timerkey,'counter',-1));
     if cnt > 0 then
         return redis.call('hget',@key,@subkey);
+    elseif cnt == 0 then
+        local tmp = redis.call('hget',@key,@subkey);
+        redis.call('del',@timerkey);
+        redis.call('hdel',@key,@subkey);
+        return tmp;
     else
         redis.call('del',@timerkey);
         redis.call('hdel',@key,@subkey);
         return nil;
     end
 elseif mode == {(byte)TimeOutMode.FromCreate} then
-    local crt = redis.call('hget',@timerkey,'creation');
-    if crt - @now > 0 then
+    local crt = tonumber(redis.call('hget',@timerkey,'creation'));
+    if @now - crt < tonumber(redis.call('hget',@timerkey,'counter')) then
         return redis.call('hget',@key,@subkey);
     else
         redis.call('del',@timerkey);
@@ -143,8 +190,8 @@ elseif mode == {(byte)TimeOutMode.FromCreate} then
         return nil;
     end
 else
-    local crt = redis.call('hget',@timerkey,'creation');
-    if crt - @now > 0 then
+    local crt = tonumber(redis.call('hget',@timerkey,'creation'));
+    if @now - crt < tonumber(redis.call('hget',@timerkey,'counter')) then
         redis.call('hset',@timerkey,'creation',@now);
         return redis.call('hget',@key,@subkey);
     else
@@ -152,14 +199,34 @@ else
         redis.call('hdel',@key,@subkey);
         return nil;
     end
+end");
+            _LuaExistsSub = LuaScript.Prepare($@"local mode = tonumber(redis.call('hget',@timerkey,'mode'));
+if mode == nil then
+    return 0;
 end
-");
-        }
-
-        public RedisCacheProvider(ConfigurationOptions options, MessagePack.MessagePackSerializerOptions mspOptions = null) : this()
-        {
-            Option = mspOptions ?? MessagePack.Resolvers.ContractlessStandardResolver.Options;
-            Connection = ConnectionMultiplexer.Connect(options);
+if mode == {(byte)TimeOutMode.Never} then
+    return 1
+elseif mode == {(byte)TimeOutMode.AccessCount} then
+    return 1
+elseif mode == {(byte)TimeOutMode.FromCreate} then
+    local crt = tonumber(redis.call('hget',@timerkey,'creation'));
+    if @now - crt < tonumber(redis.call('hget',@timerkey,'counter')) then
+        return 1
+    else
+        redis.call('del',@timerkey);
+        redis.call('hdel',@key,@subkey);
+        return 0;
+    end
+else
+    local crt = tonumber(redis.call('hget',@timerkey,'creation'));
+    if @now - crt < tonumber(redis.call('hget',@timerkey,'counter')) then
+        return 1;
+    else
+        redis.call('del',@timerkey);
+        redis.call('hdel',@key,@subkey);
+        return 0;
+    end
+end");
         }
 
         public TVal this[string key]
@@ -216,7 +283,7 @@ end
         //BUG Check expiertion on exists.
         public bool HasKey(string key)
         {
-            return _Cache.KeyExists(key);
+            return (bool)_Cache.ScriptEvaluate(_LuaExists, new { key = key, timerkey = GetTimerKey(key), now = DateTime.UtcNow.Subtract(_BaseDate).TotalSeconds });
         }
 
         public void Remove(string key)
@@ -232,7 +299,7 @@ end
         //BUG Check expiertion on exists.
         public bool HasKey(string key, string subKey)
         {
-            return _Cache.HashExists(key, subKey);
+            return (bool)_Cache.ScriptEvaluate(_LuaExistsSub, new { key = key, subkey = subKey, timerkey = GetTimerKey(key, subKey), now = DateTime.UtcNow.Subtract(_BaseDate).TotalSeconds });
         }
 
         public T Get<T>(string key) where T : TVal
@@ -257,6 +324,16 @@ end
         {
             var tmp = Restore(key, subKey);
             return tmp != null ? Deserialize(tmp, type) : type.IsValueType ? Activator.CreateInstance(type) : null;
+        }
+
+        public void Cache(string key, TVal obj, DateTime expiry)
+        {
+            Store(key, obj, TimeOutMode.FromCreate, (int)expiry.Subtract(DateTime.UtcNow).TotalSeconds);
+        }
+
+        public void Cache(string key, string subkey, TVal obj, DateTime expiry)
+        {
+            Store(key, subkey, obj, TimeOutMode.FromCreate, (int)expiry.Subtract(DateTime.UtcNow).TotalSeconds);
         }
     }
 }

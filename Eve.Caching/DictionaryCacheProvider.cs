@@ -187,5 +187,15 @@ namespace Eve.Caching
         {
             throw new NotImplementedException();
         }
+
+        public virtual void Cache(TKey key, TVal obj, DateTime expiry)
+        {
+            Cache(key, obj, TimeOutMode.FromCreate, (int)expiry.Subtract(DateTime.UtcNow).TotalSeconds);
+        }
+
+        public virtual void Cache(TKey key, TKey subkey, TVal obj, DateTime expiry)
+        {
+            Cache(key, subkey, obj, TimeOutMode.FromCreate, (int)expiry.Subtract(DateTime.UtcNow).TotalSeconds);
+        }
     }
 }

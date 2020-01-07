@@ -1,5 +1,6 @@
 using Eve.Caching;
 using Eve.Caching.Redis;
+using System;
 using System.Threading;
 using Xunit;
 
@@ -48,9 +49,19 @@ namespace Eve.Caching.RedisTest
         public void HasKey()
         {
             var cache = GetProvider();
-            cache.Cache("tst", new testObj());
+            cache.Cache("tst", new testObj(), TimeOutMode.AccessCount, 1);
             Assert.True(cache.HasKey("tst"));
-            cache.Remove("tst");
+            cache.Get<testObj>("tst");
+            Assert.False(cache.HasKey("tst"));
+
+            cache.Cache("tst", new testObj(), TimeOutMode.FromCreate, 1);
+            Assert.True(cache.HasKey("tst"));
+            Thread.Sleep(1000);
+            Assert.False(cache.HasKey("tst"));
+
+            cache.Cache("tst", new testObj(), TimeOutMode.LastUse, 1);
+            Assert.True(cache.HasKey("tst"));
+            Thread.Sleep(1000);
             Assert.False(cache.HasKey("tst"));
         }
 
@@ -59,6 +70,19 @@ namespace Eve.Caching.RedisTest
         {
             var cache = GetProvider();
             cache.Cache("tst", new testObj(), TimeOutMode.FromCreate, 1);
+            Thread.Sleep(500);
+            Assert.NotNull(cache.Get<testObj>("tst"));
+            Thread.Sleep(300);
+            Assert.NotNull(cache.Get<testObj>("tst"));
+            Thread.Sleep(900);
+            Assert.Null(cache.Get<testObj>("tst"));
+        }
+
+        [Fact]
+        public void ExpierDate()
+        {
+            var cache = GetProvider();
+            cache.Cache("tst", new testObj(), DateTime.UtcNow.AddSeconds(2));
             Thread.Sleep(500);
             Assert.NotNull(cache.Get<testObj>("tst"));
             Thread.Sleep(300);
@@ -109,18 +133,29 @@ namespace Eve.Caching.RedisTest
         public void Remove_Subkey()
         {
             var cache = GetProvider();
-            cache.Cache("rm", "tst", new testObj());
+            cache.Cache("rm", "tst", new testObj(), TimeOutMode.AccessCount, 1);
+            Assert.True(cache.HasKey("rm", "tst"));
             cache.Remove("rm", "tst");
-            Assert.Null(cache.Get<testObj>("rm", "tst"));
+            Assert.False(cache.HasKey("rm", "tst"));
         }
 
         [Fact]
         public void HasKey_Subkey()
         {
             var cache = GetProvider();
-            cache.Cache("hs", "tst", new testObj());
+            cache.Cache("hs", "tst", new testObj(), TimeOutMode.AccessCount, 1);
             Assert.True(cache.HasKey("hs", "tst"));
-            cache.Remove("hs", "tst");
+            cache.Get<testObj>("hs", "tst");
+            Assert.False(cache.HasKey("hs", "tst"));
+
+            cache.Cache("hs", "tst", new testObj(), TimeOutMode.FromCreate, 1);
+            Assert.True(cache.HasKey("hs", "tst"));
+            Thread.Sleep(1001);
+            Assert.False(cache.HasKey("hs", "tst"));
+
+            cache.Cache("hs", "tst", new testObj(), TimeOutMode.LastUse, 1);
+            Assert.True(cache.HasKey("hs", "tst"));
+            Thread.Sleep(1001);
             Assert.False(cache.HasKey("hs", "tst"));
         }
 

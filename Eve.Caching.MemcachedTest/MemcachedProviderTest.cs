@@ -70,6 +70,19 @@ namespace Eve.Caching.MemcachedTest
             Assert.Null(cache.Get<testObj>("tst"));
         }
 
+        [Fact]
+        public void ExpierDate()
+        {
+            var cache = GetProvider();
+            cache.Cache("tst", new testObj(), DateTime.UtcNow.AddSeconds(2));
+            Thread.Sleep(500);
+            Assert.NotNull(cache.Get<testObj>("tst"));
+            Thread.Sleep(300);
+            Assert.NotNull(cache.Get<testObj>("tst"));
+            Thread.Sleep(900);
+            Assert.Null(cache.Get<testObj>("tst"));
+        }
+
         // [Fact]
         // public void ExpierAccess()
         // {

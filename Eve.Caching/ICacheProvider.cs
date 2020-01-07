@@ -5,10 +5,12 @@ namespace Eve.Caching
     public interface ICacheProvider<TKey, TValue>
     {
         void Cache(TKey key, TValue obj);
+        void Cache(TKey key, TValue obj, DateTime expiry);
         void Cache(TKey key, TValue obj, TimeOutMode mode, int timeOut);
         void Remove(TKey key);
 
         void Cache(TKey key, TKey subkey, TValue obj);
+        void Cache(TKey key, TKey subkey, TValue obj, DateTime expiry);
         void Cache(TKey key, TKey subkey, TValue obj, TimeOutMode mode, int timeOut);
         void Remove(TKey key, TKey subKey);
 
