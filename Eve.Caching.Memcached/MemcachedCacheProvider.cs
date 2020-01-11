@@ -1,11 +1,11 @@
 ﻿using System;
 using Eve.Caching;
 using Enyim.Caching.Memcached;
+using System.Threading.Tasks;
 
-
-namespace Eve.Caching.Memcached 
+namespace Eve.Caching.Memcached
 {
-    public class MemcachedCacheProvider<TValue> : ICacheProvider<string,TValue>
+    public class MemcachedCacheProvider<TValue> : ICacheProvider<string, TValue>
     {
         private MemcachedCluster _cluster = null;
         private MemcachedClient _client = null;
@@ -32,42 +32,53 @@ namespace Eve.Caching.Memcached
             return $"!~{key}_{subkey}";
         }
 
+        private string getInfoKey(string key)
+        {
+            return $"!~info~~{key}";
+        }
+
         public void Cache(string key, TValue obj)
         {
-            _Cache.StoreAsync(StoreMode.Set,key,obj, Expiration.Never).Wait();
+            Task[] t = new Task[2];
+            t[0] = _Cache.StoreAsync(StoreMode.Set, key, obj, Expiration.Never);
+            t[1] = _Cache.StoreAsync(StoreMode.Set, getInfoKey(key), 1, Expiration.Never);
+            Task.WaitAll(t);
         }
         public void Cache(string key, TValue obj, TimeOutMode mode, int timeOut)
         {
-            switch(mode)
+            switch (mode)
             {
                 case TimeOutMode.AccessCount:
                 case TimeOutMode.LastUse:
                 default:
                     throw new NotImplementedException();
                 case TimeOutMode.Never:
-                    Cache(key,obj);
+                    Cache(key, obj);
                     break;
                 case TimeOutMode.FromCreate:
-                    _Cache.StoreAsync(StoreMode.Set,key,obj,new TimeSpan(00,00,timeOut)).Wait();
+                    _Cache.StoreAsync(StoreMode.Set, key, obj, new TimeSpan(00, 00, timeOut)).Wait();
                     break;
             }
         }
         public void Remove(string key)
         {
-            _Cache.DeleteAsync(key).Wait();
+            Task[] t = new Task[2];
+            t[0] = _Cache.DeleteAsync(getInfoKey(key));
+            t[1] = _Cache.DeleteAsync(key);
+            Task.WaitAll(t);
         }
 
         public void Cache(string key, string subkey, TValue obj)
         {
-            Cache(joinKeis(key,subkey),obj);
+            Cache(joinKeis(key, subkey), obj);
         }
         public void Cache(string key, string subkey, TValue obj, TimeOutMode mode, int timeOut)
         {
-            Cache(joinKeis(key,subkey),obj,mode,timeOut);
+            Cache(joinKeis(key, subkey), obj, mode, timeOut);
         }
         public void Remove(string key, string subkey)
         {
-            Remove(joinKeis(key,subkey));
+            Remove(joinKeis(key, subkey));
         }
 
         public void Clear()
@@ -76,18 +87,20 @@ namespace Eve.Caching.Memcached
         }
         public bool HasKey(string key)
         {
-            throw new NotImplementedException();
+            var t = _Cache.GetAsync(getInfoKey(key));
+            t.Wait();
+            return t.Result != null;
         }
         public bool HasKey(string key, string subkey)
         {
-            return HasKey(joinKeis(key,subkey));
+            return HasKey(joinKeis(key, subkey));
         }
 
-        public TValue this[string key] 
+        public TValue this[string key]
         {
             set
             {
-                Cache(key,value);
+                Cache(key, value);
             }
             get
             {
@@ -96,15 +109,15 @@ namespace Eve.Caching.Memcached
                 return (TValue)t.Result;
             }
         }
-        public TValue this[string key, string subkey] 
-        { 
+        public TValue this[string key, string subkey]
+        {
             set
             {
-                this[joinKeis(key,subkey)] = value;
+                this[joinKeis(key, subkey)] = value;
             }
             get
             {
-                return this[joinKeis(key,subkey)];
+                return this[joinKeis(key, subkey)];
             }
         }
 
@@ -116,17 +129,17 @@ namespace Eve.Caching.Memcached
         }
         public T Get<T>(string key, string subkey) where T : TValue
         {
-            return Get<T>(joinKeis(key,subkey));
+            return Get<T>(joinKeis(key, subkey));
         }
         public object Get(string key, Type type)
         {
             var t = _Cache.GetAsync(key);
             t.Wait();
-            return Convert.ChangeType(t.Result,type);
+            return Convert.ChangeType(t.Result, type);
         }
         public object Get(string key, string subkey, Type type)
         {
-            return Get(joinKeis(key,subkey),type);
+            return Get(joinKeis(key, subkey), type);
         }
 
         public void Cache(string key, TValue obj, DateTime expiry)

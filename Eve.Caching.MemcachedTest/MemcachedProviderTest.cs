@@ -47,40 +47,40 @@ namespace Eve.Caching.MemcachedTest
             Assert.Null(cache.Get<testObj>("tst"));
         }
 
-        // [Fact]
-        // public void HasKey()
-        // {
-        //     var cache = GetProvider();
-        //     cache.Cache("tst", new testObj());
-        //     Assert.True(cache.HasKey("tst"));
-        //     cache.Remove("tst");
-        //     Assert.False(cache.HasKey("tst"));
-        // }
+        [Fact]
+        public void HasKey()
+        {
+            var cache = GetProvider();
+            cache.Cache("tsth", new testObj());
+            Assert.True(cache.HasKey("tsth"));
+            cache.Remove("tsth");
+            Assert.False(cache.HasKey("tsth"));
+        }
 
         [Fact]
         public void ExpierCreate()
         {
             var cache = GetProvider();
-            cache.Cache("tst", new testObj(), TimeOutMode.FromCreate, 2);
-            Thread.Sleep(600);
-            Assert.NotNull(cache.Get<testObj>("tst"));
-            Thread.Sleep(600);
-            Assert.NotNull(cache.Get<testObj>("tst"));
-            Thread.Sleep(900);
-            Assert.Null(cache.Get<testObj>("tst"));
+            cache.Cache("tstc", new testObj(), TimeOutMode.FromCreate, 3);
+            Thread.Sleep(500);
+            Assert.NotNull(cache.Get<testObj>("tstc"));
+            Thread.Sleep(500);
+            Assert.NotNull(cache.Get<testObj>("tstc"));
+            Thread.Sleep(2000);
+            Assert.Null(cache.Get<testObj>("tstc"));
         }
 
         [Fact]
         public void ExpierDate()
         {
             var cache = GetProvider();
-            cache.Cache("tst", new testObj(), DateTime.UtcNow.AddSeconds(2));
+            cache.Cache("tstd", new testObj(), DateTime.UtcNow.AddSeconds(3));
             Thread.Sleep(500);
-            Assert.NotNull(cache.Get<testObj>("tst"));
-            Thread.Sleep(300);
-            Assert.NotNull(cache.Get<testObj>("tst"));
-            Thread.Sleep(900);
-            Assert.Null(cache.Get<testObj>("tst"));
+            Assert.NotNull(cache.Get<testObj>("tstd"));
+            Thread.Sleep(500);
+            Assert.NotNull(cache.Get<testObj>("tstd"));
+            Thread.Sleep(2000);
+            Assert.Null(cache.Get<testObj>("tstd"));
         }
 
         // [Fact]
@@ -130,14 +130,14 @@ namespace Eve.Caching.MemcachedTest
             Assert.Null(cache.Get<testObj>("rm", "tst"));
         }
 
-        // [Fact]
-        // public void HasKey_Subkey()
-        // {
-        //     var cache = GetProvider();
-        //     cache.Cache("hs", "tst", new testObj());
-        //     Assert.True(cache.HasKey("hs", "tst"));
-        //     cache.Remove("hs", "tst");
-        //     Assert.False(cache.HasKey("hs", "tst"));
-        // }
+        [Fact]
+        public void HasKey_Subkey()
+        {
+            var cache = GetProvider();
+            cache.Cache("hs", "tst", new testObj());
+            Assert.True(cache.HasKey("hs", "tst"));
+            cache.Remove("hs", "tst");
+            Assert.False(cache.HasKey("hs", "tst"));
+        }
     }
 }
