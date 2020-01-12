@@ -32,20 +32,19 @@ namespace Eve.Caching.Memcached
             return $"!~{key}_{subkey}";
         }
 
-        private string getInfoKey(string key)
-        {
-            return $"!~info~~{key}";
-        }
-
         public void Cache(string key, TValue obj)
         {
-            Task[] t = new Task[2];
-            t[0] = _Cache.StoreAsync(StoreMode.Set, key, obj, Expiration.Never);
-            t[1] = _Cache.StoreAsync(StoreMode.Set, getInfoKey(key), 1, Expiration.Never);
-            Task.WaitAll(t);
+            Cache(key, obj, TimeOutMode.Never, 0);
         }
         public void Cache(string key, TValue obj, TimeOutMode mode, int timeOut)
         {
+            var tmp = new ItemContainer<TValue>()
+            {
+                Content = obj,
+                Mode = mode,
+                CreationTime = DateTime.Now,
+                AccessCounter = timeOut
+            };
             switch (mode)
             {
                 case TimeOutMode.AccessCount:
@@ -53,19 +52,16 @@ namespace Eve.Caching.Memcached
                 default:
                     throw new NotImplementedException();
                 case TimeOutMode.Never:
-                    Cache(key, obj);
+                    _Cache.StoreAsync(StoreMode.Set, key, tmp).Wait();
                     break;
                 case TimeOutMode.FromCreate:
-                    _Cache.StoreAsync(StoreMode.Set, key, obj, new TimeSpan(00, 00, timeOut)).Wait();
+                    _Cache.StoreAsync(StoreMode.Set, key, tmp, new TimeSpan(00, 00, timeOut)).Wait();
                     break;
             }
         }
         public void Remove(string key)
         {
-            Task[] t = new Task[2];
-            t[0] = _Cache.DeleteAsync(getInfoKey(key));
-            t[1] = _Cache.DeleteAsync(key);
-            Task.WaitAll(t);
+            _Cache.DeleteAsync(key).Wait();
         }
 
         public void Cache(string key, string subkey, TValue obj)
@@ -87,9 +83,27 @@ namespace Eve.Caching.Memcached
         }
         public bool HasKey(string key)
         {
-            var t = _Cache.GetAsync(getInfoKey(key));
-            t.Wait();
-            return t.Result != null;
+            try
+            {
+                var t = _Cache.GetAsync(key);
+                t.Wait();
+                ItemContainer<TValue> item;
+                switch ((item = (ItemContainer<TValue>)t.Result).Mode)
+                {
+                    case TimeOutMode.Never:
+                    default:
+                        return true;
+                    case TimeOutMode.AccessCount:
+                        return item.AccessCounter > 0;
+                    case TimeOutMode.FromCreate:
+                    case TimeOutMode.LastUse:
+                        return item.AccessCounter >= item.CreationTime.Subtract(DateTime.UtcNow).TotalSeconds;
+                }
+            }
+            catch
+            {
+                return false;
+            }
         }
         public bool HasKey(string key, string subkey)
         {
@@ -104,9 +118,7 @@ namespace Eve.Caching.Memcached
             }
             get
             {
-                var t = _Cache.GetAsync(key);
-                t.Wait();
-                return (TValue)t.Result;
+                return Get<TValue>(key);
             }
         }
         public TValue this[string key, string subkey]
@@ -117,15 +129,41 @@ namespace Eve.Caching.Memcached
             }
             get
             {
-                return this[joinKeis(key, subkey)];
+                return Get<TValue>(joinKeis(key, subkey));
             }
         }
 
         public T Get<T>(string key) where T : TValue
         {
-            var t = _Cache.GetAsync(key);
-            t.Wait();
-            return (T)t.Result;
+            try
+            {
+                var t = _Cache.GetAsync(key);
+                t.Wait();
+                ItemContainer<TValue> tmp = (ItemContainer<TValue>)t.Result;
+                switch (tmp.Mode)
+                {
+                    case TimeOutMode.Never:
+                    default:
+                        return (T)tmp.Content;
+                    case TimeOutMode.AccessCount:
+                        if(tmp.AccessCounter-->0)
+                        {
+                            var ts = _Cache.StoreAsync(StoreMode.Replace, key, tmp);
+                            ts.Wait();
+                            return (T)tmp.Content;
+                        }
+                        else
+                        {
+                            Remove(key);
+                            return default(T);
+                        }
+
+                }
+            }
+            catch
+            {
+                return default(T);
+            }
         }
         public T Get<T>(string key, string subkey) where T : TValue
         {
