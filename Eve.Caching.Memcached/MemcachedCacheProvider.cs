@@ -91,11 +91,11 @@ namespace Eve.Caching.Memcached
                 switch ((item = (ItemContainer<TValue>)t.Result).Mode)
                 {
                     case TimeOutMode.Never:
+                    case TimeOutMode.FromCreate:
                     default:
                         return true;
                     case TimeOutMode.AccessCount:
                         return item.AccessCounter > 0;
-                    case TimeOutMode.FromCreate:
                     case TimeOutMode.LastUse:
                         return item.AccessCounter >= item.CreationTime.Subtract(DateTime.UtcNow).TotalSeconds;
                 }
@@ -125,7 +125,7 @@ namespace Eve.Caching.Memcached
         {
             set
             {
-                this[joinKeis(key, subkey)] = value;
+                Cache(joinKeis(key, subkey), value);
             }
             get
             {
@@ -143,13 +143,13 @@ namespace Eve.Caching.Memcached
                 switch (tmp.Mode)
                 {
                     case TimeOutMode.Never:
+                    case TimeOutMode.FromCreate:
                     default:
                         return (T)tmp.Content;
                     case TimeOutMode.AccessCount:
                         if(tmp.AccessCounter-->0)
                         {
-                            var ts = _Cache.StoreAsync(StoreMode.Replace, key, tmp);
-                            ts.Wait();
+                            _Cache.StoreAsync(StoreMode.Replace, key, tmp).Wait();
                             return (T)tmp.Content;
                         }
                         else
@@ -157,7 +157,18 @@ namespace Eve.Caching.Memcached
                             Remove(key);
                             return default(T);
                         }
-
+                    case TimeOutMode.LastUse:
+                        if(tmp.AccessCounter >= tmp.CreationTime.Subtract(DateTime.UtcNow).TotalSeconds)
+                        {
+                            tmp.CreationTime = DateTime.UtcNow;
+                            _Cache.StoreAsync(StoreMode.Replace, key, tmp).Wait();
+                            return (T)tmp.Content;
+                        }
+                        else
+                        {
+                            Remove(key);
+                            return default(T);
+                        }
                 }
             }
             catch
@@ -171,9 +182,7 @@ namespace Eve.Caching.Memcached
         }
         public object Get(string key, Type type)
         {
-            var t = _Cache.GetAsync(key);
-            t.Wait();
-            return Convert.ChangeType(t.Result, type);
+            return Convert.ChangeType(this.Get<TValue>(key), type);
         }
         public object Get(string key, string subkey, Type type)
         {
