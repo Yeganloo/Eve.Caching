@@ -80,7 +80,33 @@ namespace Eve.Caching
 
         public virtual bool HasKey(TKey key)
         {
-            return _Cache.ContainsKey(key);
+            try
+            {
+                var ct = _Cache[key];
+                switch (ct.Mode)
+                {
+                    case TimeOutMode.AccessCount:
+                        if (ct.AccessCounter-- > 0)
+                            return true;
+                        Remove(key);
+                        return false;
+                    case TimeOutMode.FromCreate:
+                    case TimeOutMode.LastUse:
+                        if (DateTime.UtcNow.Subtract(ct.CreationTime).TotalSeconds <= ct.AccessCounter)
+                        {
+                            return true;
+                        }
+                        Remove(key);
+                        return false;
+                    default:
+                    case TimeOutMode.Never:
+                        return true;
+                }
+            }
+            catch (KeyNotFoundException)
+            {
+                return false;
+            }
         }
 
         public virtual void Remove(TKey key)
@@ -143,24 +169,19 @@ namespace Eve.Caching
                 switch (ct.Mode)
                 {
                     case TimeOutMode.AccessCount:
-                        lock (ct)
-                        {
-                            if (ct.AccessCounter-- > 0)
-                                return ct.Content;
-                            Remove(key);
-                            return _GetDefault(type);
-                        }
+                        if (ct.AccessCounter-- > 0)
+                            return ct.Content;
+                        Remove(key);
+                        return _GetDefault(type);
                     case TimeOutMode.LastUse:
-                        lock (ct)
+
+                        if (DateTime.UtcNow.Subtract(ct.CreationTime).TotalSeconds <= ct.AccessCounter)
                         {
-                            if (DateTime.UtcNow.Subtract(ct.CreationTime).TotalSeconds <= ct.AccessCounter)
-                            {
-                                ct.CreationTime = DateTime.UtcNow;
-                                return ct.Content;
-                            }
-                            Remove(key);
-                            return _GetDefault(type);
+                            ct.CreationTime = DateTime.UtcNow;
+                            return ct.Content;
                         }
+                        Remove(key);
+                        return _GetDefault(type);
                     case TimeOutMode.FromCreate:
                         if (DateTime.UtcNow.Subtract(ct.CreationTime).TotalSeconds <= ct.AccessCounter)
                             return ct.Content;

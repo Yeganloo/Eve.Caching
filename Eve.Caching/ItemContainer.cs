@@ -2,6 +2,7 @@
 
 namespace Eve.Caching
 {
+    [Serializable]
     public class ItemContainer<TContent>
     {
         public DateTime CreationTime { get; set; }

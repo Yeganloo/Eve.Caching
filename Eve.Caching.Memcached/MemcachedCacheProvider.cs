@@ -48,12 +48,11 @@ namespace Eve.Caching.Memcached
             switch (mode)
             {
                 case TimeOutMode.AccessCount:
-                case TimeOutMode.LastUse:
-                default:
-                    throw new NotImplementedException();
                 case TimeOutMode.Never:
+                default:
                     _Cache.StoreAsync(StoreMode.Set, key, tmp).Wait();
                     break;
+                case TimeOutMode.LastUse:
                 case TimeOutMode.FromCreate:
                     _Cache.StoreAsync(StoreMode.Set, key, tmp, new TimeSpan(00, 00, timeOut)).Wait();
                     break;
@@ -92,12 +91,11 @@ namespace Eve.Caching.Memcached
                 {
                     case TimeOutMode.Never:
                     case TimeOutMode.FromCreate:
+                    case TimeOutMode.LastUse:
                     default:
                         return true;
                     case TimeOutMode.AccessCount:
                         return item.AccessCounter > 0;
-                    case TimeOutMode.LastUse:
-                        return item.AccessCounter >= item.CreationTime.Subtract(DateTime.UtcNow).TotalSeconds;
                 }
             }
             catch
@@ -147,7 +145,7 @@ namespace Eve.Caching.Memcached
                     default:
                         return (T)tmp.Content;
                     case TimeOutMode.AccessCount:
-                        if(tmp.AccessCounter-->0)
+                        if (tmp.AccessCounter-- > 0)
                         {
                             _Cache.StoreAsync(StoreMode.Replace, key, tmp).Wait();
                             return (T)tmp.Content;
@@ -158,10 +156,10 @@ namespace Eve.Caching.Memcached
                             return default(T);
                         }
                     case TimeOutMode.LastUse:
-                        if(tmp.AccessCounter >= tmp.CreationTime.Subtract(DateTime.UtcNow).TotalSeconds)
+                        if (tmp.AccessCounter >= DateTime.UtcNow.Subtract(tmp.CreationTime).TotalSeconds)
                         {
                             tmp.CreationTime = DateTime.UtcNow;
-                            _Cache.StoreAsync(StoreMode.Replace, key, tmp).Wait();
+                            _Cache.StoreAsync(StoreMode.Set, key, tmp, new TimeSpan(00, 00, tmp.AccessCounter)).Wait();
                             return (T)tmp.Content;
                         }
                         else

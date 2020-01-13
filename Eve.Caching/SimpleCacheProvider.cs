@@ -12,8 +12,8 @@ namespace Eve.Caching
 
         public override TVal this[string Key, string SubKey]
         {
-            get => this[joinKeis(Key, SubKey)];
-            set => this[joinKeis(Key, SubKey)] = value;
+            get => Get<TVal>(joinKeis(Key, SubKey));
+            set => Cache(joinKeis(Key, SubKey), value);
         }
 
         public override void Cache(string key, string subkey, TVal obj)
@@ -23,7 +23,7 @@ namespace Eve.Caching
 
         public override void Cache(string key, string subkey, TVal obj, TimeOutMode mode, int timeOut)
         {
-            Cache(key, subkey, obj);
+            Cache(joinKeis(key, subkey), obj, mode, timeOut);
         }
 
         public override void Remove(string key, string subKey)

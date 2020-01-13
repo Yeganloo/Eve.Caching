@@ -47,9 +47,19 @@ namespace Eve.CachingTest
         public void HasKey()
         {
             var cache = GetProvider();
-            cache.Cache("tst", new testObj());
+            cache.Cache("tst", new testObj(), TimeOutMode.AccessCount, 1);
             Assert.True(cache.HasKey("tst"));
-            cache.Remove("tst");
+            cache.Get<testObj>("tst");
+            Assert.False(cache.HasKey("tst"));
+
+            cache.Cache("tst", new testObj(), TimeOutMode.FromCreate, 1);
+            Assert.True(cache.HasKey("tst"));
+            Thread.Sleep(1000);
+            Assert.False(cache.HasKey("tst"));
+
+            cache.Cache("tst", new testObj(), TimeOutMode.LastUse, 1);
+            Assert.True(cache.HasKey("tst"));
+            Thread.Sleep(1000);
             Assert.False(cache.HasKey("tst"));
         }
 
@@ -130,9 +140,19 @@ namespace Eve.CachingTest
         public void HasKey_Subkey()
         {
             var cache = GetProvider();
-            cache.Cache("hs", "tst", new testObj());
+            cache.Cache("hs", "tst", new testObj(), TimeOutMode.AccessCount, 1);
             Assert.True(cache.HasKey("hs", "tst"));
-            cache.Remove("hs", "tst");
+            cache.Get<testObj>("hs", "tst");
+            Assert.False(cache.HasKey("hs", "tst"));
+
+            cache.Cache("hs", "tst", new testObj(), TimeOutMode.FromCreate, 1);
+            Assert.True(cache.HasKey("hs", "tst"));
+            Thread.Sleep(1001);
+            Assert.False(cache.HasKey("hs", "tst"));
+
+            cache.Cache("hs", "tst", new testObj(), TimeOutMode.LastUse, 1);
+            Assert.True(cache.HasKey("hs", "tst"));
+            Thread.Sleep(1001);
             Assert.False(cache.HasKey("hs", "tst"));
         }
 
