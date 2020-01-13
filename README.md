@@ -1,9 +1,9 @@
 # Eve.Caching
 
-Eve.Caching provide a simple caching interface. The base library also containes a simple in-memory provider. There is also more extention libraries that impliment this interface for popular caching services like Redis (rc2 is avalible) or Memcached (under development).
+Eve.Caching provide a simple caching interface. The base library also containes a simple in-memory provider. There is also more extention libraries that impliment this interface for popular caching services like Redis or Memcached.
 
 # Installing Module
-Nuget package is abalible!
+Nuget package is avalible!
 ## Base library
 
 ``` shell
