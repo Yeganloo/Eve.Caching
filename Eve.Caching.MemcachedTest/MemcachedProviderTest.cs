@@ -8,7 +8,7 @@ namespace Eve.Caching.MemcachedTest
 {
     public class MemcachedProviderTest
     {
-        private const int _Rounds = 10;
+        private const int _Rounds = 10000;
         [Serializable]
         public class testObj
         {

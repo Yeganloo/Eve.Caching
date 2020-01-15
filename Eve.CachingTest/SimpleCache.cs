@@ -7,7 +7,7 @@ namespace Eve.CachingTest
 {
     public class SimpleCache
     {
-        private const int _Rounds = 1000;
+        private const int _Rounds = 10000;
         public class testObj
         {
             public int I;

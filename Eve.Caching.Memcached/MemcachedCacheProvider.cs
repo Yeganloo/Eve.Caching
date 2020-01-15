@@ -1,7 +1,5 @@
-﻿using System;
-using Eve.Caching;
-using Enyim.Caching.Memcached;
-using System.Threading.Tasks;
+﻿using Enyim.Caching.Memcached;
+using System;
 
 namespace Eve.Caching.Memcached
 {
@@ -45,16 +43,17 @@ namespace Eve.Caching.Memcached
                 CreationTime = DateTime.Now,
                 AccessCounter = timeOut
             };
+            bool done;
             switch (mode)
             {
                 case TimeOutMode.AccessCount:
                 case TimeOutMode.Never:
                 default:
-                    _Cache.StoreAsync(StoreMode.Set, key, tmp).Wait();
+                    done = _Cache.StoreAsync(StoreMode.Set, key, tmp).Result;
                     break;
                 case TimeOutMode.LastUse:
                 case TimeOutMode.FromCreate:
-                    _Cache.StoreAsync(StoreMode.Set, key, tmp, new TimeSpan(00, 00, timeOut)).Wait();
+                    done = _Cache.StoreAsync(StoreMode.Set, key, tmp, new TimeSpan(00, 00, timeOut)).Result;
                     break;
             }
         }
@@ -84,10 +83,8 @@ namespace Eve.Caching.Memcached
         {
             try
             {
-                var t = _Cache.GetAsync(key);
-                t.Wait();
-                ItemContainer<TValue> item;
-                switch ((item = (ItemContainer<TValue>)t.Result).Mode)
+                ItemContainer<TValue> item = (ItemContainer<TValue>)_Cache.GetAsync(key).Result;
+                switch (item.Mode)
                 {
                     case TimeOutMode.Never:
                     case TimeOutMode.FromCreate:
@@ -133,11 +130,10 @@ namespace Eve.Caching.Memcached
 
         public T Get<T>(string key) where T : TValue
         {
+            bool done;
             try
             {
-                var t = _Cache.GetAsync(key);
-                t.Wait();
-                ItemContainer<TValue> tmp = (ItemContainer<TValue>)t.Result;
+                ItemContainer<TValue> tmp = (ItemContainer<TValue>)_Cache.GetAsync(key).Result;
                 switch (tmp.Mode)
                 {
                     case TimeOutMode.Never:
@@ -147,7 +143,7 @@ namespace Eve.Caching.Memcached
                     case TimeOutMode.AccessCount:
                         if (tmp.AccessCounter-- > 0)
                         {
-                            _Cache.StoreAsync(StoreMode.Replace, key, tmp).Wait();
+                            done = _Cache.StoreAsync(StoreMode.Replace, key, tmp).Result;
                             return (T)tmp.Content;
                         }
                         else
@@ -159,7 +155,7 @@ namespace Eve.Caching.Memcached
                         if (tmp.AccessCounter >= DateTime.UtcNow.Subtract(tmp.CreationTime).TotalSeconds)
                         {
                             tmp.CreationTime = DateTime.UtcNow;
-                            _Cache.StoreAsync(StoreMode.Set, key, tmp, new TimeSpan(00, 00, tmp.AccessCounter)).Wait();
+                            done = _Cache.StoreAsync(StoreMode.Set, key, tmp, new TimeSpan(00, 00, tmp.AccessCounter)).Result;
                             return (T)tmp.Content;
                         }
                         else

@@ -1,4 +1,3 @@
-using Eve.Caching;
 using Eve.Caching.Redis;
 using System;
 using System.Threading;
@@ -8,7 +7,7 @@ namespace Eve.Caching.RedisTest
 {
     public class RedisCacheTest
     {
-        private const int _Rounds = 10;
+        private const int _Rounds = 10000;
         public class testObj
         {
             public int I;
