@@ -26,12 +26,12 @@ namespace Eve.Caching.Redis
         //TODO Set redis builting expier
         private void Store(string key, TVal obj, TimeOutMode mode = TimeOutMode.Never, int timeOut = 0)
         {
-            _Cache.ScriptEvaluate(_LuaCache, new { key = (RedisKey)key, value = Serialize(obj), mode = (int)mode, timer = timeOut, timerkey = GetTimerKey(key), creation = DateTime.UtcNow.Subtract(_BaseDate).TotalSeconds });
+            _Cache.ScriptEvaluateAsync(_LuaCache, new { key = (RedisKey)key, value = Serialize(obj), mode = (int)mode, timer = timeOut, timerkey = GetTimerKey(key), creation = DateTime.UtcNow.Subtract(_BaseDate).TotalSeconds });
         }
         //TODO Set redis builting expier
         private void Store(string key, string subkey, TVal obj, TimeOutMode mode = TimeOutMode.Never, int timeOut = 0)
         {
-            _Cache.ScriptEvaluate(_LuaCacheSub, new { key = (RedisKey)key, subkey = (RedisKey)subkey, value = Serialize(obj), mode = (int)mode, timer = timeOut, timerkey = GetTimerKey(key, subkey), creation = DateTime.UtcNow.Subtract(_BaseDate).TotalSeconds });
+            _Cache.ScriptEvaluateAsync(_LuaCacheSub, new { key = (RedisKey)key, subkey = (RedisKey)subkey, value = Serialize(obj), mode = (int)mode, timer = timeOut, timerkey = GetTimerKey(key, subkey), creation = DateTime.UtcNow.Subtract(_BaseDate).TotalSeconds });
         }
 
         private byte[] Restore(string key)
@@ -75,6 +75,7 @@ namespace Eve.Caching.Redis
         {
             Option = mspOptions ?? MessagePack.Resolvers.ContractlessStandardResolver.Options;
             Connection = ConnectionMultiplexer.Connect(options);
+            var server = Connection.GetServer(Connection.GetEndPoints()[0]);
 
             _LuaCache = LuaScript.Prepare(@"redis.call('hset',@timerkey,'mode',@mode);
 redis.call('hset',@timerkey,'counter',@timer);
