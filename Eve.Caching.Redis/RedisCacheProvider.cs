@@ -289,12 +289,12 @@ end");
 
     public void Remove(string key)
     {
-      _Cache.ScriptEvaluate(_LuaDel, new { key = key, timerkey = GetTimerKey(key) });
+      _Cache.ScriptEvaluate(_LuaDel, new { key = key, timerkey = GetTimerKey(key) }, CommandFlags.FireAndForget);
     }
 
     public void Remove(string key, string subKey)
     {
-      _Cache.ScriptEvaluate(_LuaDelSub, new { key = key, subkey = subKey, timerkey = GetTimerKey(key, subKey) });
+      _Cache.ScriptEvaluate(_LuaDelSub, new { key = key, subkey = subKey, timerkey = GetTimerKey(key, subKey) }, CommandFlags.FireAndForget);
     }
 
     //BUG Check expiertion on exists.
