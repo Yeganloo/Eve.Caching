@@ -3,12 +3,12 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
     <PackageId>Eve.Caching.Memcached</PackageId>
-    <Version>0.1.3</Version>
+    <Version>0.1.4</Version>
     <Authors>hoseinyeganloo@gmail.com</Authors>
     <Company>Eve</Company>
     <PackageDescription>Memcached support fo Eve.Caching.</PackageDescription>
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
-    <Copyright>Hosein Yeganloo - 2019</Copyright>
+    <Copyright>Hosein Yeganloo - 2022</Copyright>
     <PackageTags>Caching;Simple Cache;In Memory;Memcached</PackageTags>
     <RepositoryURL>https://github.com/Yeganloo/Eve.Caching</RepositoryURL>
   </PropertyGroup>

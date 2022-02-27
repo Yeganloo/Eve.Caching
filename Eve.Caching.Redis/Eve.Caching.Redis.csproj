@@ -1,16 +1,16 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>netstandard2.1</TargetFramework>
     <PackageId>Eve.Caching.Redis</PackageId>
-    <Version>0.1.3</Version>
+    <Version>0.1.4</Version>
     <Authors>hoseinyeganloo@gmail.com</Authors>
     <Company>Eve</Company>
     <RepositoryType>github</RepositoryType>
     <RepositoryURL>https://github.com/Yeganloo/Eve.Caching</RepositoryURL>
     <PackageDescription>Redis caching module.</PackageDescription>
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
-    <Copyright>Hosein Yeganloo - 2019</Copyright>
+    <Copyright>Hosein Yeganloo - 2022</Copyright>
     <PackageTags>Caching;Redis;In Memory</PackageTags>
   
 </PropertyGroup>
@@ -19,8 +19,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="MessagePack" Version="2.2.113" />
-    <PackageReference Include="StackExchange.Redis" Version="2.2.62" />
+    <PackageReference Include="MessagePack" Version="2.3.85" />
+    <PackageReference Include="StackExchange.Redis" Version="2.2.88" />
   </ItemGroup>
 
   <ItemGroup>
