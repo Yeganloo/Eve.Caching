@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.1</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <PackageId>Eve.Caching.Memcached</PackageId>
     <Version>0.1.3</Version>
     <Authors>hoseinyeganloo@gmail.com</Authors>
@@ -13,7 +13,7 @@
     <RepositoryURL>https://github.com/Yeganloo/Eve.Caching</RepositoryURL>
   </PropertyGroup>
   <ItemGroup>
-    <None Include="../LICENSE.txt" Pack="true" PackagePath="$(PackageLicenseFile)"/>
+    <None Include="../LICENSE.txt" Pack="true" PackagePath="$(PackageLicenseFile)" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Enyim.Memcached2" Version="0.6.8" />
