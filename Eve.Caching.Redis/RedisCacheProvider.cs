@@ -5,7 +5,7 @@ namespace Eve.Caching.Redis
 {
     public class RedisCacheProvider<TVal> : ICacheProvider<string, TVal>
     {
-        private ConnectionMultiplexer Connection;
+        private IConnectionMultiplexer Connection;
         private MessagePack.MessagePackSerializerOptions Option;
         private const string TimerPrifix = "~!Time_";
 
@@ -71,7 +71,7 @@ namespace Eve.Caching.Redis
             _BaseDate = new DateTime(1970, 01, 01, 00, 00, 00);
         }
 
-        public RedisCacheProvider(ConnectionMultiplexer connection, MessagePack.MessagePackSerializerOptions mspOptions = null) : this()
+        public RedisCacheProvider(IConnectionMultiplexer connection, MessagePack.MessagePackSerializerOptions mspOptions = null) : this()
         {
             Option = mspOptions ?? MessagePack.Resolvers.ContractlessStandardResolver.Options;
             Connection = connection;

@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFrameworks>netstandard2.1</TargetFrameworks>
     <PackageId>Eve.Caching</PackageId>
-    <Version>0.1.5</Version>
+    <Version>0.1.6</Version>
     <Authors>hoseinyeganloo@gmail.com</Authors>
     <Company>Eve</Company>
     <PackageDescription>Simple caching module.</PackageDescription>
