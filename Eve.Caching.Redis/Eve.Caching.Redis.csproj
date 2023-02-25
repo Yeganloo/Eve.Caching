@@ -3,7 +3,6 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
     <PackageId>Eve.Caching.Redis</PackageId>
-    <Version>0.1.6</Version>
     <Authors>hoseinyeganloo@gmail.com</Authors>
     <Company>Eve</Company>
     <RepositoryType>github</RepositoryType>
@@ -12,14 +11,14 @@
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
     <Copyright>Hosein Yeganloo - 2022</Copyright>
     <PackageTags>Caching;Redis;In Memory</PackageTags>
-  
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 </PropertyGroup>
   <ItemGroup>
     <None Include="../LICENSE.txt" Pack="true" PackagePath="$(PackageLicenseFile)" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="MessagePack" Version="2.3.85" />
+    <PackageReference Include="MessagePack" Version="2.4.59" />
     <PackageReference Include="StackExchange.Redis" Version="2.6.96" />
   </ItemGroup>
 
