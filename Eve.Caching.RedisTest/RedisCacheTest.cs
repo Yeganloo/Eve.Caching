@@ -2,14 +2,15 @@ using Eve.Caching.Redis;
 using System;
 using System.Threading;
 using Xunit;
+using StackExchange.Redis;
 
 namespace Eve.Caching.RedisTest
 {
     public class RedisCacheTest
     {
-        private static ICacheProvider<string, testObj> cache = 
-            new RedisCacheProvider<testObj>(
-                StackExchange.Redis.ConfigurationOptions.Parse("127.0.0.1:6379,defaultDatabase=3"));
+        private static ICacheProvider<string, testObj> cache =
+            new RedisCacheProvider<testObj>(ConnectionMultiplexer.Connect(
+                StackExchange.Redis.ConfigurationOptions.Parse("127.0.0.1:6379,defaultDatabase=3")));
         private const int _Rounds = 10000;
         public class testObj
         {
